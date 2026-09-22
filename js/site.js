@@ -1,254 +1,550 @@
 // ===========================================================
-// Theme toggle (persisted across all pages)
+// Theme toggle
 // ===========================================================
+
 const root = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
 const savedTheme = localStorage.getItem('portfolio-theme');
-if (savedTheme) root.setAttribute('data-theme', savedTheme);
 
-themeToggle.addEventListener('click', () => {
-  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  root.setAttribute('data-theme', next);
-  localStorage.setItem('portfolio-theme', next);
+if (savedTheme) {
+  root.setAttribute('data-theme', savedTheme);
+}
+
+themeToggle?.addEventListener('click', () => {
+  const nextTheme =
+    root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+
+  root.setAttribute('data-theme', nextTheme);
+  localStorage.setItem('portfolio-theme', nextTheme);
 });
 
 // ===========================================================
-// Shared contact rendering (used on every page)
+// Helpers
 // ===========================================================
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function sortByOrder(items = []) {
+  return [...items].sort((a, b) => a.sort_order - b.sort_order);
+}
+
+function getInitials(name = '') {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase() || 'MH';
+}
+
 function renderContact(container, profile) {
   if (!container || !profile) return;
-  container.innerHTML = `
-    <a href="mailto:${profile.email}">${profile.email}</a>
-    <span class="contact-sep">&middot;</span>
-    <a href="${profile.linkedin_url}" target="_blank" rel="noopener">LinkedIn</a>
-  `;
+
+  const email = profile.email?.trim();
+  const linkedin = profile.linkedin_url?.trim();
+
+  const links = [];
+
+  if (email) {
+    links.push(
+      `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`
+    );
+  }
+
+  if (linkedin) {
+    links.push(
+      `<a href="${escapeHtml(linkedin)}" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+    );
+  }
+
+  container.innerHTML = links.join('<span class="contact-sep">·</span>');
 }
 
 async function loadProfile() {
-  const { data, error } = await supabaseClient.from('profile').select('*').eq('id', 1).single();
+  const { data, error } = await supabaseClient
+    .from('profile')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
   if (error) {
     console.error('Could not load profile:', error);
     return null;
   }
+
   return data;
 }
 
 // ===========================================================
-// HOME PAGE (index.html)
+// HOME PAGE
 // ===========================================================
+
 async function initHomePage() {
   const heroName = document.getElementById('heroName');
   const heroTagline = document.getElementById('heroTagline');
-  const homeContact = document.getElementById('homeContact');
+  const profileImage = document.getElementById('profileImage');
+  const profileInitials = document.getElementById('profileInitials');
+  const emailLink = document.getElementById('emailLink');
+  const linkedinLink = document.getElementById('linkedinLink');
 
   const profile = await loadProfile();
+
   if (!profile) {
-    heroName.textContent = 'Could not load — check your Supabase connection';
+    heroName.textContent = 'Could not load portfolio';
     return;
   }
+
   heroName.textContent = profile.full_name;
   heroTagline.textContent = profile.tagline;
-  renderContact(homeContact, profile);
+  profileInitials.textContent = getInitials(profile.full_name);
+
+  if (profile.profile_image_url) {
+    profileImage.src = profile.profile_image_url;
+    profileImage.alt = profile.full_name;
+    profileImage.hidden = false;
+    profileInitials.hidden = true;
+  }
+
+  if (profile.email) {
+    emailLink.href = `mailto:${profile.email}`;
+  } else {
+    emailLink.hidden = true;
+  }
+
+  if (profile.linkedin_url) {
+    linkedinLink.href = profile.linkedin_url;
+  } else {
+    linkedinLink.hidden = true;
+  }
 }
 
 // ===========================================================
-// STUDENT PAGE (student.html)
+// STUDENT PAGE
 // ===========================================================
+
+function renderStudentSkills(skills, category, container) {
+  if (!container) return;
+
+  const categorySkills = skills.filter((skill) => skill.category === category);
+
+  if (!categorySkills.length) {
+    container.innerHTML = '<p class="loading-note">No skills added yet.</p>';
+    return;
+  }
+
+  container.innerHTML = categorySkills
+    .map(
+      (skill) => `
+        <article class="skill-card">
+          <p>${escapeHtml(skill.name)}</p>
+        </article>
+      `
+    )
+    .join('');
+}
+
+function renderTimeline(timeline, container) {
+  if (!container) return;
+
+  if (!timeline.length) {
+    container.innerHTML = '<p class="loading-note">No timeline entries yet.</p>';
+    return;
+  }
+
+  container.innerHTML = timeline
+    .map((item) => {
+      const images = sortByOrder(item.timeline_images || []);
+
+      const imageHtml = images.length
+        ? `
+          <div class="timeline-image-list">
+            ${images
+              .map(
+                (image) => `
+                  <img
+                    src="${escapeHtml(image.image_url)}"
+                    alt="${escapeHtml(image.alt_text || item.title)}"
+                    loading="lazy"
+                  >
+                `
+              )
+              .join('')}
+          </div>
+        `
+        : '';
+
+      return `
+        <article class="timeline-item">
+          <div class="timeline-dot" aria-hidden="true"></div>
+
+          <div class="timeline-content">
+            <span class="timeline-year">${escapeHtml(item.year_range)}</span>
+            <h3>${escapeHtml(item.title)}</h3>
+            ${item.school ? `<p class="timeline-school">${escapeHtml(item.school)}</p>` : ''}
+            ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}
+            ${imageHtml}
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+}
+
+function renderCertificates(certificates, container) {
+  if (!container) return;
+
+  if (!certificates.length) {
+    container.innerHTML =
+      '<p class="loading-note">No certificates added yet.</p>';
+    return;
+  }
+
+  container.innerHTML = certificates
+    .map((certificate) => {
+      const images = sortByOrder(certificate.certificate_images || []);
+      const firstImage = images[0];
+
+      const meta = [certificate.organization, certificate.date_label]
+        .filter(Boolean)
+        .map(escapeHtml)
+        .join(' · ');
+
+      return `
+        <article class="cert-card">
+          ${
+            firstImage
+              ? `
+                <img
+                  src="${escapeHtml(firstImage.image_url)}"
+                  alt="${escapeHtml(firstImage.alt_text || certificate.title)}"
+                  loading="lazy"
+                >
+              `
+              : ''
+          }
+
+          <div class="cert-body">
+            <h3>${escapeHtml(certificate.title)}</h3>
+            ${meta ? `<p class="cert-meta">${meta}</p>` : ''}
+            ${
+              certificate.description
+                ? `<p>${escapeHtml(certificate.description)}</p>`
+                : ''
+            }
+            ${
+              certificate.credential_url
+                ? `
+                  <a
+                    href="${escapeHtml(certificate.credential_url)}"
+                    class="btn-credential"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View credential
+                  </a>
+                `
+                : ''
+            }
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+}
+
 async function initStudentPage() {
-  const pageContact = document.getElementById('pageContact');
+  const studentDescription = document.getElementById('studentDescription');
+  const softSkillsGrid = document.getElementById('softSkillsGrid');
+  const otherSkillsGrid = document.getElementById('otherSkillsGrid');
   const timelineContainer = document.getElementById('timelineContainer');
   const certGrid = document.getElementById('certGrid');
+  const pageContact = document.getElementById('pageContact');
 
-  const [profile, timelineRes, certsRes] = await Promise.all([
+  const [profile, skillsRes, timelineRes, certificatesRes] = await Promise.all([
     loadProfile(),
-    supabaseClient.from('timeline').select('*').order('sort_order', { ascending: false }),
-    supabaseClient.from('certifications').select('*').order('sort_order', { ascending: false }),
+    supabaseClient
+      .from('skills')
+      .select('*')
+      .eq('page', 'student')
+      .order('sort_order', { ascending: true }),
+    supabaseClient
+      .from('timeline')
+      .select('*, timeline_images(*)')
+      .order('sort_order', { ascending: false }),
+    supabaseClient
+      .from('certifications')
+      .select('*, certificate_images(*)')
+      .order('sort_order', { ascending: false }),
   ]);
 
-  renderContact(pageContact, profile);
-
-  // Timeline
-  if (timelineRes.error || !timelineRes.data.length) {
-    timelineContainer.innerHTML = '<p class="loading-note">No timeline entries yet.</p>';
-  } else {
-    timelineContainer.innerHTML = timelineRes.data.map(item => `
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <span class="timeline-year">${item.year_range}</span>
-          <h3>${item.title}</h3>
-          <p class="timeline-school">${item.school}</p>
-          <p>${item.description}</p>
-        </div>
-      </div>
-    `).join('');
+  if (profile) {
+    studentDescription.textContent = profile.student_description;
+    renderContact(pageContact, profile);
   }
 
-  // Certifications
-  if (certsRes.error || !certsRes.data.length) {
-    certGrid.innerHTML = '<p class="loading-note">No certifications added yet.</p>';
-  } else {
-    certGrid.innerHTML = certsRes.data.map(cert => `
-      <div class="cert-card">
-        ${cert.image_url ? `<img src="${cert.image_url}" alt="${cert.title} certificate" loading="lazy">` : ''}
-        <div class="cert-body">
-          <h3>${cert.title}</h3>
-          <p class="cert-meta">${[cert.org, cert.date_label].filter(Boolean).join(' &middot; ')}</p>
-          ${cert.credential_url ? `<a href="${cert.credential_url}" class="btn-credential" target="_blank" rel="noopener">View credential</a>` : ''}
-        </div>
-      </div>
-    `).join('');
-  }
+  const skills = skillsRes.data || [];
+  renderStudentSkills(skills, 'soft_skills', softSkillsGrid);
+  renderStudentSkills(skills, 'other_skills', otherSkillsGrid);
+  renderTimeline(timelineRes.data || [], timelineContainer);
+  renderCertificates(certificatesRes.data || [], certGrid);
 }
 
 // ===========================================================
-// DESIGNER PAGE (designer.html)
+// DESIGNER PAGE
 // ===========================================================
-let allProjects = {}; // keyed by id, used by the modal
 
-async function initDesignerPage() {
-  const pageContact = document.getElementById('pageContact');
-  const arsenalList = document.getElementById('arsenalList');
+const allProjects = {};
 
-  const [profile, arsenalRes, projectsRes] = await Promise.all([
-    loadProfile(),
-    supabaseClient.from('arsenal').select('*').order('sort_order', { ascending: true }),
-    supabaseClient.from('projects').select('*').order('sort_order', { ascending: false }),
-  ]);
+function renderArsenalSkills(skills, category, container) {
+  if (!container) return;
 
-  renderContact(pageContact, profile);
+  const categorySkills = skills.filter((skill) => skill.category === category);
 
-  // Arsenal
-  if (arsenalRes.error || !arsenalRes.data.length) {
-    arsenalList.innerHTML = '<li class="loading-note">No tools added yet.</li>';
-  } else {
-    arsenalList.innerHTML = arsenalRes.data.map(item => `<li>${item.name}</li>`).join('');
+  if (!categorySkills.length) {
+    container.innerHTML = '<li class="loading-note">No skills added yet.</li>';
+    return;
   }
 
-  // Projects, grouped by category
-  const categories = { websites: [], wireframes: [], branding: [] };
-  if (!projectsRes.error) {
-    projectsRes.data.forEach(p => {
-      allProjects[p.id] = p;
-      if (categories[p.category]) categories[p.category].push(p);
-    });
+  container.innerHTML = categorySkills
+    .map((skill) => `<li>${escapeHtml(skill.name)}</li>`)
+    .join('');
+}
+
+function renderProjectCategory(projects, category) {
+  const grid = document.getElementById(`cat-${category}`);
+  if (!grid) return;
+
+  const items = projects.filter((project) => project.category === category);
+
+  if (!items.length) {
+    grid.innerHTML = '<p class="loading-note">No projects added yet.</p>';
+    return;
   }
 
-  Object.entries(categories).forEach(([cat, items]) => {
-    const grid = document.getElementById(`cat-${cat}`);
-    if (!items.length) {
-      grid.innerHTML = '<p class="loading-note">No projects added yet.</p>';
-      return;
-    }
-    grid.innerHTML = items.map(p => {
-      const thumb = (p.images && p.images[0]) || '';
+  grid.innerHTML = items
+    .map((project) => {
+      const images = sortByOrder(project.project_images || []);
+      const thumbnail = images[0];
+
       return `
-        <button class="card" data-project-id="${p.id}">
-          ${thumb ? `<img src="${thumb}" alt="" loading="lazy">` : ''}
-          <div class="card-body">
-            <h3>${p.title}</h3>
-            <p>${p.tag}</p>
-          </div>
+        <button class="card" type="button" data-project-id="${project.id}">
+          ${
+            thumbnail
+              ? `
+                <img
+                  src="${escapeHtml(thumbnail.image_url)}"
+                  alt=""
+                  loading="lazy"
+                >
+              `
+              : '<div class="card-image-placeholder">No preview available</div>'
+          }
+
+          <span class="card-body">
+            <span class="card-title">${escapeHtml(project.title)}</span>
+            ${
+              project.subtitle
+                ? `<span class="card-subtitle">${escapeHtml(project.subtitle)}</span>`
+                : ''
+            }
+          </span>
         </button>
       `;
-    }).join('');
+    })
+    .join('');
+}
+
+async function initDesignerPage() {
+  const designerDescription = document.getElementById('designerDescription');
+  const programmingSkills = document.getElementById('programmingSkills');
+  const designSkills = document.getElementById('designSkills');
+  const professionalSkills = document.getElementById('professionalSkills');
+  const pageContact = document.getElementById('pageContact');
+
+  const [profile, skillsRes, projectsRes] = await Promise.all([
+    loadProfile(),
+    supabaseClient
+      .from('skills')
+      .select('*')
+      .eq('page', 'designer')
+      .order('sort_order', { ascending: true }),
+    supabaseClient
+      .from('projects')
+      .select('*, project_images(*)')
+      .order('sort_order', { ascending: false }),
+  ]);
+
+  if (profile) {
+    designerDescription.textContent = profile.designer_description;
+    renderContact(pageContact, profile);
+  }
+
+  const skills = skillsRes.data || [];
+  renderArsenalSkills(skills, 'programming', programmingSkills);
+  renderArsenalSkills(skills, 'design', designSkills);
+  renderArsenalSkills(skills, 'professional_skills', professionalSkills);
+
+  const projects = projectsRes.data || [];
+
+  projects.forEach((project) => {
+    allProjects[project.id] = project;
   });
+
+  [
+    'websites',
+    'ui_ux_designs',
+    'branding',
+    'other_creatives',
+  ].forEach((category) => renderProjectCategory(projects, category));
 
   initModal();
 }
 
 // ===========================================================
-// Project detail modal (Designer page only)
+// PROJECT MODAL + IMAGE CAROUSEL
 // ===========================================================
+
 function initModal() {
   const modal = document.getElementById('projectModal');
   if (!modal) return;
 
-  const modalTrack = modal.querySelector('.modal-track');
-  const modalDots = modal.querySelector('.carousel-dots');
-  const modalPrev = modal.querySelector('.carousel-btn.prev');
-  const modalNext = modal.querySelector('.carousel-btn.next');
-  const modalTitle = modal.querySelector('#modalTitle');
-  const modalTag = modal.querySelector('.modal-tag');
-  const modalDesc = modal.querySelector('.modal-desc');
+  const track = document.getElementById('modalTrack');
+  const dots = document.getElementById('carouselDots');
+  const previousButton = modal.querySelector('.carousel-btn.prev');
+  const nextButton = modal.querySelector('.carousel-btn.next');
 
-  let modalIndex = 0;
-  let modalImageCount = 1;
+  const modalCategory = document.getElementById('modalCategory');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSubtitle = document.getElementById('modalSubtitle');
+  const modalDescription = document.getElementById('modalDescription');
+  const modalRole = document.getElementById('modalRole');
+  const modalTools = document.getElementById('modalTools');
+  const modalRoleWrap = document.getElementById('modalRoleWrap');
+  const modalToolsWrap = document.getElementById('modalToolsWrap');
+  const modalProjectLink = document.getElementById('modalProjectLink');
 
-  function openModal(projectId) {
+  let currentIndex = 0;
+  let imageCount = 0;
+  let lastFocusedCard = null;
+
+  function changeSlide(index) {
+    if (!imageCount) return;
+
+    currentIndex = (index + imageCount) % imageCount;
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+    [...dots.children].forEach((dot, dotIndex) => {
+      dot.classList.toggle('active', dotIndex === currentIndex);
+    });
+  }
+
+  function openModal(projectId, sourceCard) {
     const project = allProjects[projectId];
     if (!project) return;
 
+    lastFocusedCard = sourceCard;
+    const images = sortByOrder(project.project_images || []);
+
+    modalCategory.textContent = project.category.replaceAll('_', ' ');
     modalTitle.textContent = project.title;
-    modalTag.textContent = project.tag;
-    modalDesc.textContent = project.description;
+    modalSubtitle.textContent = project.subtitle || '';
+    modalDescription.textContent = project.description || '';
 
-    const images = project.images && project.images.length ? project.images : [];
-    modalTrack.innerHTML = '';
-    modalDots.innerHTML = '';
-    images.forEach((src, i) => {
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = `${project.title} image ${i + 1}`;
-      modalTrack.appendChild(img);
+    modalRole.textContent = project.role || '';
+    modalTools.textContent = project.tools || '';
+    modalRoleWrap.hidden = !project.role;
+    modalToolsWrap.hidden = !project.tools;
 
-      const dot = document.createElement('button');
-      dot.setAttribute('aria-label', `Go to image ${i + 1}`);
-      if (i === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => goToModalSlide(i));
-      modalDots.appendChild(dot);
-    });
+    if (project.project_url) {
+      modalProjectLink.href = project.project_url;
+      modalProjectLink.hidden = false;
+    } else {
+      modalProjectLink.hidden = true;
+    }
 
-    modalImageCount = images.length || 1;
-    const multiImage = images.length > 1;
-    modalPrev.style.display = multiImage ? 'flex' : 'none';
-    modalNext.style.display = multiImage ? 'flex' : 'none';
-    modalDots.style.display = multiImage ? 'flex' : 'none';
+    track.innerHTML = '';
+    dots.innerHTML = '';
 
-    goToModalSlide(0);
+    if (images.length) {
+      images.forEach((image, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+
+        const imageElement = document.createElement('img');
+        imageElement.src = image.image_url;
+        imageElement.alt = image.alt_text || `${project.title} image ${index + 1}`;
+        imageElement.loading = 'lazy';
+
+        slide.appendChild(imageElement);
+        track.appendChild(slide);
+
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Show image ${index + 1}`);
+        dot.addEventListener('click', () => changeSlide(index));
+        dots.appendChild(dot);
+      });
+    } else {
+      track.innerHTML =
+        '<div class="carousel-slide carousel-empty">No project images added yet.</div>';
+    }
+
+    imageCount = images.length || 1;
+    const hasMultipleImages = images.length > 1;
+
+    previousButton.hidden = !hasMultipleImages;
+    nextButton.hidden = !hasMultipleImages;
+    dots.hidden = !hasMultipleImages;
+
+    changeSlide(0);
+
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    modal.querySelector('.modal-close').focus();
   }
 
   function closeModal() {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    lastFocusedCard?.focus();
   }
 
-  function goToModalSlide(i) {
-    modalIndex = (i + modalImageCount) % modalImageCount;
-    modalTrack.style.setProperty('--slide', modalIndex);
-    Array.from(modalDots.children).forEach((d, di) => d.classList.toggle('active', di === modalIndex));
-  }
+  previousButton.addEventListener('click', () => changeSlide(currentIndex - 1));
+  nextButton.addEventListener('click', () => changeSlide(currentIndex + 1));
 
-  modalPrev.addEventListener('click', () => goToModalSlide(modalIndex - 1));
-  modalNext.addEventListener('click', () => goToModalSlide(modalIndex + 1));
-  modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
-
-  document.addEventListener('keydown', (e) => {
-    if (!modal.classList.contains('open')) return;
-    if (e.key === 'Escape') closeModal();
-    if (e.key === 'ArrowLeft') goToModalSlide(modalIndex - 1);
-    if (e.key === 'ArrowRight') goToModalSlide(modalIndex + 1);
+  modal.querySelectorAll('[data-close]').forEach((element) => {
+    element.addEventListener('click', closeModal);
   });
 
-  let modalStartX = 0;
-  modalTrack.addEventListener('touchstart', (e) => { modalStartX = e.touches[0].clientX; }, { passive: true });
-  modalTrack.addEventListener('touchend', (e) => {
-    const delta = e.changedTouches[0].clientX - modalStartX;
-    if (Math.abs(delta) > 40) delta < 0 ? goToModalSlide(modalIndex + 1) : goToModalSlide(modalIndex - 1);
-  }, { passive: true });
+  document.addEventListener('keydown', (event) => {
+    if (!modal.classList.contains('open')) return;
 
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', () => openModal(card.dataset.projectId));
+    if (event.key === 'Escape') closeModal();
+    if (event.key === 'ArrowLeft') changeSlide(currentIndex - 1);
+    if (event.key === 'ArrowRight') changeSlide(currentIndex + 1);
+  });
+
+  document.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('click', () => {
+      openModal(card.dataset.projectId, card);
+    });
   });
 }
 
 // ===========================================================
-// Route to the right init function based on which page we're on
+// Start the correct page
 // ===========================================================
+
 if (document.getElementById('heroName')) initHomePage();
 if (document.getElementById('timelineContainer')) initStudentPage();
-if (document.getElementById('arsenalList')) initDesignerPage();
+if (document.getElementById('programmingSkills')) initDesignerPage();

@@ -1,49 +1,91 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Student — Migs</title>
-<meta name="description" content="Academic timeline and certifications for Migs, a fourth-year IT student.">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Student — Miguel Hufancia</title>
+  <meta
+    name="description"
+    content="Academic timeline, skills, and certifications of Miguel Hufancia."
+  >
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
+  <a href="index.html" class="brand-mark" aria-label="Back to home">M</a>
 
-<a href="index.html" class="brand-mark" aria-label="Back to home">M</a>
-<button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme">
-  <span class="theme-icon sun">&#9728;</span>
-  <span class="theme-icon moon">&#9790;</span>
-</button>
+  <button class="theme-toggle" id="themeToggle" aria-label="Switch color theme">
+    <span class="theme-icon sun">☀</span>
+    <span class="theme-icon moon">☾</span>
+  </button>
 
-<div class="page">
-  <a href="index.html" class="back-link">&#8592; Back to home</a>
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to home</a>
 
-  <header class="page-header">
-    <h1>Student</h1>
-    <p class="page-lede">My academic path, from senior high school to now.</p>
-  </header>
+    <header class="page-header">
+      <p class="page-eyebrow">About me</p>
+      <h1>Student</h1>
+      <p class="page-lede" id="studentDescription">
+        Loading introduction…
+      </p>
+    </header>
 
-  <section class="timeline" id="timelineContainer">
-    <p class="loading-note">Loading timeline…</p>
-  </section>
+    <section class="skills-section" aria-labelledby="softSkillsHeading">
+      <div class="section-heading">
+        <p class="section-label">Strengths</p>
+        <h2 id="softSkillsHeading">Soft skills</h2>
+      </div>
 
-  <section class="certs">
-    <h2>Certifications &amp; achievements</h2>
-    <p class="section-lede">Each card shows the certificate — tap "View credential" to verify it online.</p>
-    <div class="cert-grid" id="certGrid">
-      <p class="loading-note">Loading certifications…</p>
-    </div>
-  </section>
+      <div class="skill-grid" id="softSkillsGrid">
+        <p class="loading-note">Loading skills…</p>
+      </div>
+    </section>
 
-  <footer class="contact" id="pageContact"></footer>
-</div>
+    <section class="skills-section" aria-labelledby="otherSkillsHeading">
+      <div class="section-heading">
+        <p class="section-label">Capabilities</p>
+        <h2 id="otherSkillsHeading">Other skills</h2>
+      </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-client.js"></script>
-<script src="js/site.js"></script>
+      <div class="skill-grid" id="otherSkillsGrid">
+        <p class="loading-note">Loading skills…</p>
+      </div>
+    </section>
+
+    <section class="timeline-section" aria-labelledby="timelineHeading">
+      <div class="section-heading">
+        <p class="section-label">Education</p>
+        <h2 id="timelineHeading">Academic timeline</h2>
+      </div>
+
+      <div class="timeline" id="timelineContainer">
+        <p class="loading-note">Loading timeline…</p>
+      </div>
+    </section>
+
+    <section class="certs" aria-labelledby="certificationsHeading">
+      <div class="section-heading">
+        <p class="section-label">Recognition</p>
+        <h2 id="certificationsHeading">Certificates &amp; achievements</h2>
+      </div>
+
+      <div class="cert-grid" id="certGrid">
+        <p class="loading-note">Loading certificates…</p>
+      </div>
+    </section>
+
+    <footer class="contact" id="pageContact"></footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/site.js"></script>
 </body>
 </html>
