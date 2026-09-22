@@ -38,16 +38,18 @@ html[data-theme="light"] {
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0) 0 0/28px 28px,
+    var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
-h1, h2, h3 { font-family: var(--font-head); margin: 0; }
+h1, h2, h3 { font-family: var(--font-head); margin: 0; letter-spacing: -0.01em; }
 p { margin: 0 0 0.9rem; }
 a { color: var(--accent); }
 img { max-width: 100%; display: block; }
@@ -85,6 +87,35 @@ html[data-theme="dark"] .theme-icon.moon { display: block; }
 html[data-theme="light"] .theme-icon.sun { display: block; }
 
 /* ===========================================================
+   Brand mark (fixed top-left, mirrors the theme toggle)
+=========================================================== */
+.brand-mark {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.05rem;
+  background-image: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  box-shadow: 0 0 16px var(--glow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.brand-mark:hover { transform: scale(1.06); box-shadow: 0 0 22px var(--glow); }
+
+/* ===========================================================
    Back link (student.html / designer.html)
 =========================================================== */
 .back-link {
@@ -99,16 +130,52 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
 /* ===========================================================
    Hero (home page)
 =========================================================== */
-.home-page { display: flex; align-items: center; min-height: 100vh; }
+.home-page { display: flex; align-items: center; min-height: 100vh; position: relative; overflow: hidden; }
 .hero {
   text-align: center;
   padding: 40px 0;
   width: 100%;
+  position: relative;
 }
+
+/* Ambient drifting glow orbs behind the hero content */
+.home-page::before,
+.home-page::after {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow), transparent 70%);
+  filter: blur(10px);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  animation: driftOrb 16s ease-in-out infinite alternate;
+}
+.home-page::before { top: -160px; left: -120px; }
+.home-page::after { bottom: -160px; right: -120px; animation-delay: -8s; }
+@keyframes driftOrb {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(40px, 30px) scale(1.12); }
+}
+
 .hero-kicker {
   color: var(--text-soft);
   font-size: 0.9rem;
   margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-kicker::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--glow);
+  display: inline-block;
 }
 .hero-name {
   font-size: clamp(2rem, 7vw, 2.9rem);
@@ -116,13 +183,17 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
   margin-bottom: 14px;
 }
 .glow-text {
-  color: var(--accent-strong);
-  text-shadow: 0 0 22px var(--glow);
+  background-image: linear-gradient(120deg, var(--accent-strong), var(--accent) 60%, var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px var(--glow);
 }
 .hero-lede {
   color: var(--text-soft);
   max-width: 46ch;
   margin: 0 auto 40px;
+  position: relative;
 }
 
 /* ===========================================================
@@ -136,6 +207,7 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
   margin-bottom: 36px;
 }
 .home-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -146,13 +218,37 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
   background: var(--surface);
   text-decoration: none;
   color: var(--text);
+  overflow: hidden;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.home-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.home-btn::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  width: 40%;
+  height: 220%;
+  background: linear-gradient(120deg, transparent, var(--glow), transparent);
+  transform: translateX(-160%) rotate(20deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
 }
 .home-btn:hover {
   box-shadow: 0 0 28px var(--glow);
   border-color: var(--accent);
   transform: translateY(-2px);
 }
+.home-btn:hover::before { opacity: 1; }
+.home-btn:hover::after { transform: translateX(160%) rotate(20deg); }
 .home-btn-title {
   font-family: var(--font-head);
   font-size: 1.3rem;
@@ -161,7 +257,7 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
 }
 .home-btn-sub { font-size: 0.85rem; color: var(--text-soft); }
 
-.home-contact { font-size: 0.95rem; }
+.home-contact { font-size: 0.95rem; position: relative; }
 .home-contact a { text-decoration: none; }
 .home-contact a:hover { text-shadow: 0 0 14px var(--glow); }
 
@@ -172,9 +268,30 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
 .page-header h1 {
   font-size: clamp(1.8rem, 5vw, 2.3rem);
   margin-bottom: 8px;
+  background-image: linear-gradient(120deg, var(--accent-strong), var(--accent) 65%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .page-lede { color: var(--text-soft); margin: 0; }
 .section-lede { color: var(--text-soft); margin-bottom: 24px; }
+
+/* Shared section-heading accent marker, used by .certs h2 / .arsenal h2 / .category h2 */
+.certs h2, .arsenal h2, .category h2 {
+  position: relative;
+  padding-left: 20px;
+}
+.certs h2::before, .arsenal h2::before, .category h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--glow);
+}
 
 /* ===========================================================
    Student timeline
@@ -280,6 +397,7 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
   gap: 16px;
 }
 .card {
+  position: relative;
   text-align: left;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -290,13 +408,27 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
   color: var(--text);
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+.card::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  width: 35%;
+  height: 220%;
+  background: linear-gradient(120deg, transparent, var(--glow), transparent);
+  transform: translateX(-160%) rotate(20deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
 .card:hover {
   box-shadow: 0 0 24px var(--glow);
   border-color: var(--accent);
   transform: translateY(-2px);
 }
+.card:hover::after { transform: translateX(360%) rotate(20deg); }
 .card img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
-.card-body { padding: 14px 16px; }
+.card-body { padding: 14px 16px; position: relative; }
 .card-body h3 { font-size: 0.98rem; margin-bottom: 4px; }
 .card-body p { font-size: 0.82rem; color: var(--text-soft); margin: 0; }
 
@@ -423,4 +555,15 @@ html[data-theme="light"] .theme-icon.sun { display: block; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .modal-track img { transition: none; }
+  .home-page::before, .home-page::after { animation: none; }
+  .home-btn::after, .card::after { transition: none; content: none; }
+}
+
+/* ===========================================================
+   Loading / empty states (dynamic content pages)
+=========================================================== */
+.loading-note {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  font-style: italic;
 }
