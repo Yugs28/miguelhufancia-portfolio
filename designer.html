@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Designer — Migs</title>
+<meta name="description" content="Development and design projects by Migs, a fourth-year IT student.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme">
+  <span class="theme-icon sun">&#9728;</span>
+  <span class="theme-icon moon">&#9790;</span>
+</button>
+
+<div class="page">
+  <a href="index.html" class="back-link">&#8592; Back to home</a>
+
+  <header class="page-header">
+    <h1>Designer</h1>
+    <p class="page-lede">Tools I use, and the projects I've built with them.</p>
+  </header>
+
+  <section class="arsenal">
+    <h2>Arsenal</h2>
+    <ul class="arsenal-list" id="arsenalList">
+      <li class="loading-note">Loading…</li>
+    </ul>
+  </section>
+
+  <div class="category">
+    <h2>Websites</h2>
+    <div class="card-grid" id="cat-websites">
+      <p class="loading-note">Loading projects…</p>
+    </div>
+  </div>
+
+  <div class="category">
+    <h2>Wireframes</h2>
+    <div class="card-grid" id="cat-wireframes">
+      <p class="loading-note">Loading projects…</p>
+    </div>
+  </div>
+
+  <div class="category">
+    <h2>Branding</h2>
+    <div class="card-grid" id="cat-branding">
+      <p class="loading-note">Loading projects…</p>
+    </div>
+  </div>
+
+  <footer class="contact" id="pageContact"></footer>
+</div>
+
+<div class="modal" id="projectModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" data-close aria-label="Close">&times;</button>
+    <div class="modal-carousel">
+      <div class="modal-track"></div>
+      <button class="carousel-btn prev" aria-label="Previous image">&#8249;</button>
+      <button class="carousel-btn next" aria-label="Next image">&#8250;</button>
+      <div class="carousel-dots"></div>
+    </div>
+    <div class="modal-info">
+      <h3 id="modalTitle"></h3>
+      <p class="modal-tag"></p>
+      <p class="modal-desc"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Migs — Portfolio</title>
+<meta name="description" content="Portfolio of Migs, a fourth-year IT student — academics and design/development work.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme">
+  <span class="theme-icon sun">&#9728;</span>
+  <span class="theme-icon moon">&#9790;</span>
+</button>
+
+<div class="page home-page">
+  <section class="hero">
+    <p class="hero-kicker">IT student &amp; visual designer</p>
+    <h1 class="hero-name" id="heroName">Loading…</h1>
+    <p class="hero-lede" id="heroTagline"></p>
+
+    <div class="home-buttons">
+      <a href="student.html" class="home-btn">
+        <span class="home-btn-title">Student</span>
+        <span class="home-btn-sub">Academic timeline &amp; certifications</span>
+      </a>
+      <a href="designer.html" class="home-btn">
+        <span class="home-btn-title">Designer</span>
+        <span class="home-btn-sub">Arsenal &amp; project work</span>
+      </a>
+    </div>
+
+    <div class="home-contact" id="homeContact"></div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
