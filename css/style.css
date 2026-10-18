@@ -199,18 +199,17 @@ html[data-theme="dark"] .hero-stats strong { color: var(--accent); }
 
 .hero-visual { display: flex; justify-content: center; }
 .photo-stage { position: relative; width: min(100%, 340px); }
-.profile-photo-wrap { position: relative; width: 100%; aspect-ratio: 1; padding: 10px; border-radius: 50%; }
+.profile-photo-wrap { position: relative; isolation: isolate; width: 100%; aspect-ratio: 1; padding: 5px; border-radius: 50%; }
+/* Rotating ring sits BEHIND the photo (no CSS mask, so iOS Safari renders it correctly) */
 .profile-photo-wrap::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 3px;
-  background: conic-gradient(from 0deg, var(--accent-2), var(--accent), transparent 35%, var(--accent-2));
-  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
+  content: ""; position: absolute; z-index: -1; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--accent-2), var(--accent), var(--accent-2) 55%, var(--accent));
   animation: spin 9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .profile-photo, .profile-initials { width: 100%; height: 100%; border-radius: 50%; }
-.profile-photo { object-fit: cover; box-shadow: 0 30px 60px -28px var(--accent-2); }
-.profile-initials { display: grid; place-items: center; background: var(--surface-soft); color: var(--accent-strong); font-family: var(--font-head); font-size: 5rem; font-weight: 700; letter-spacing: -.04em; }
+.profile-photo { object-fit: cover; background: var(--surface-soft); border: 3px solid var(--bg); }
+.profile-initials { display: grid; place-items: center; border: 3px solid var(--bg); background: var(--surface-soft); color: var(--accent-strong); font-family: var(--font-head); font-size: 5rem; font-weight: 700; letter-spacing: -.04em; }
 
 .float-chips { position: absolute; inset: 0; pointer-events: none; }
 .float-chip { position: absolute; padding: 8px 16px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--header-bg); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 14px 28px -14px var(--shadow); font-size: .85rem; font-weight: 600; white-space: nowrap; animation: floaty 5s ease-in-out infinite; }
